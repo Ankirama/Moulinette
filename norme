@@ -43,6 +43,7 @@ class norme:
     def __init__(self):
         self.user = []
         self.verbose = 0
+        self.glob = 1
         self.cheat = 1
         self.comment = 1
         self.score = 1
@@ -144,9 +145,10 @@ class norme:
                 self.typedef = 0
                 p = re.compile('t_')
                 test = re.search(p, self.line)
-                if test:
-                    self.print_error('t_ manquant devant un typedef')
-                    self.note += 1
+                if self.glob:
+                    if test:
+                        self.print_error('t_ manquant devant un typedef')
+                        self.note += 1
                 else:
                     self.init_ext = 0
             p = re.compile('{')                                                                                                                                                                                                       
@@ -237,12 +239,13 @@ class norme:
     def check_typedef(self):
         if self.line[:7] == "typedef":
             self.typedef = 1
-            if self.line[-2:] == ";\n":
-                p = re.compile('t_')
-                test = re.search(p, self.line)
-                if not test:
-                    self.print_error('t_ manquant devant un typedef')
-                    self.note += 1
+            if self.glob:
+                if self.line[-2:] == ";\n":
+                    p = re.compile('t_')
+                    test = re.search(p, self.line)
+                    if not test:
+                        self.print_error('t_ manquant devant un typedef')
+                        self.note += 1
 
     def check_regex(self, regex, msg):
         p = re.compile(regex)
@@ -264,14 +267,16 @@ class norme:
                              'Fonction de la lib C')
             self.check_nbchar()
             self.check_cfunc()
-            self.check_struct()
+            if self.glob:
+                self.check_struct()
             self.check_arg()
             self.check_comment()
             self.check_return()
             self.check_operateur('+')
             self.check_operateur('|')
             self.check_typedef() #doit etre a la fin            
-            self.check_global() #doit etre apres typedef
+            if self.glob:
+                self.check_global() #doit etre apres typedef
 
     def print_error(self, msg):
         print "Erreur dans\033[31m",self.file,"\033[0ma la ligne\033[31m",self.nb_line,"\033[0m:\033[33m",msg,"\033[0m"
@@ -279,7 +284,7 @@ class norme:
             print self.line
 
     def cant_open(self, file):
-        if (self.verbose or file == sys.argv[1]):
+        if (self.verbose):
             print "Impossible d'ouvrir",file
 
     def scan_files(self, files):
@@ -437,6 +442,8 @@ def main():
         moulin.score = 1
     if '-libc' in sys.argv[1:]:
         moulin.libc = 0
+    if '-nostruct' in sys.argv[1:]:
+        moulin.glob = 0
     if '-printline' in sys.argv[1:]:
         moulin.printline = 1
     if '-return' in sys.argv[1:]:
