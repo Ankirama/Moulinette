@@ -204,7 +204,7 @@ class norme:
     def check_global(self):
         if self.is_func == 0 and self.typedef == 0 and self.init_ext == 0\
                 and self.line[:1] != "#" and self.line != "\n" and self.line[:1] != "}" \
-                and self.line[-2:] != ")\n":
+                and self.line[-2:] != ")\n" and self.line[-3:] != ");\n":
             p = re.compile('g_')
             test = re.search(p, self.line)
             if not test:
